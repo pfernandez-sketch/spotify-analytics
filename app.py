@@ -87,6 +87,7 @@ REGLAS PARA EL CÓDIGO:
 - El código debe ser ejecutable tal cual, sin imports (ya están disponibles: df, pd, px, go)
 - Elige el tipo de gráfico adecuado: barras para rankings, líneas para evolución temporal, pie para proporciones
 - Para evolución temporal, agrupa siempre por la columna `mes` (número) y no por `mes_nombre`, para mantener el orden correcto
+- Para calcular canciones nuevas por mes, usa: df.groupby('cancion')['ts'].min().reset_index() para obtener la primera vez que se escuchó cada canción, luego extrae el mes con .dt.month y agrupa por mes
 REGLAS PARA LA INTERPRETACIÓN:
 - Máximo 2 frases explicando qué muestra el gráfico
 - En español
