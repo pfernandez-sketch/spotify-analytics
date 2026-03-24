@@ -88,6 +88,8 @@ REGLAS PARA EL CÓDIGO:
 - Elige el tipo de gráfico adecuado: barras para rankings, líneas para evolución temporal, pie para proporciones
 - Para evolución temporal, agrupa siempre por la columna `mes` (número) y no por `mes_nombre`, para mantener el orden correcto
 - Para calcular canciones nuevas por mes: primeras_veces = df.groupby('cancion')['ts'].min().reset_index(); primeras_veces['mes'] = primeras_veces['ts'].dt.tz_convert(None).dt.month; nuevas_por_mes = primeras_veces.groupby('mes').size().reset_index(name='nuevas_canciones')
+
+
 REGLAS PARA LA INTERPRETACIÓN:
 - Máximo 2 frases explicando qué muestra el gráfico
 - En español
