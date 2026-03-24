@@ -111,7 +111,7 @@ def load_data():
     df["ts"] = pd.to_datetime(df["ts"], utc=True)
 
     df["hora"] = df["ts"].dt.hour
-    df["mes"] = df["ts"].dt.month
+    df["mes"] = df["ts"].dt.tz_convert(None).dt.month
     df["mes_nombre"] = df["ts"].dt.strftime("%B")
     df["dia_semana"] = df["ts"].dt.dayofweek  
     df["es_finde"] = df["dia_semana"].isin([5, 6])
