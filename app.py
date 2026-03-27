@@ -88,7 +88,7 @@ REGLAS PARA EL CÓDIGO:
 - El código debe ser ejecutable tal cual, sin imports (ya están disponibles: df, pd, px, go)
 - Elige el tipo de gráfico adecuado: barras para rankings, líneas para evolución temporal, pie para proporciones
 - Para evolución temporal, agrupa siempre por la columna `mes` (número) y no por `mes_nombre`, para mantener el orden correcto
-- Para canciones nuevas por mes usa: nuevas_por_mes = df.groupby('primera_escucha')['cancion'].nunique().reset_index(name='nuevas_canciones'); fig = px.bar(nuevas_por_mes, x='primera_escucha', y='nuevas_canciones')
+- Para canciones nuevas por mes usa: nuevas_por_mes = df.groupby('primera_escucha')['cancion'].nunique().reset_index(name='nuevas_canciones'); nuevas_por_mes['primera_escucha'] = nuevas_por_mes['primera_escucha'].astype(str); fig = px.bar(nuevas_por_mes, x='primera_escucha', y='nuevas_canciones', title='Canciones nuevas descubiertas por mes', labels={{'primera_escucha': 'Mes', 'nuevas_canciones': 'Canciones nuevas'}})
 - Cuando el eje X tenga valores de mes (1-12), conviértelo a string antes de graficar para que aparezcan como categorías: nuevas_por_mes['primera_escucha'] = nuevas_por_mes['primera_escucha'].astype(str)
 
 REGLAS PARA LA INTERPRETACIÓN:
