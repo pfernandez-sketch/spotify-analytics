@@ -73,6 +73,10 @@ Columnas disponibles en `df`:
 - es_finde: booleano, True si es sábado o domingo
 - trimestre: trimestre del año (1-4)
 - primera_escucha: mes (1-12) en que se escuchó por primera vez cada canción
+- horas: horas reproducidas
+- skipped_bool: booleano limpio, True si se saltó la canción
+- semestre: primer_semestre o segundo_semestre
+- estacion: invierno, primavera, verano u otoño
 
 INSTRUCCIONES:
 1. Responde SIEMPRE con un JSON válido y nada más. Sin texto antes ni después.
@@ -90,6 +94,14 @@ REGLAS PARA EL CÓDIGO:
 - Para evolución temporal, agrupa siempre por la columna `mes` (número) y no por `mes_nombre`, para mantener el orden correcto
 - Para canciones nuevas por mes usa: nuevas_por_mes = df.groupby('primera_escucha')['cancion'].nunique().reset_index(name='nuevas_canciones'); nuevas_por_mes['primera_escucha'] = nuevas_por_mes['primera_escucha'].astype(str); fig = px.bar(nuevas_por_mes, x='primera_escucha', y='nuevas_canciones', title='Canciones nuevas descubiertas por mes', labels={{'primera_escucha': 'Mes', 'nuevas_canciones': 'Canciones nuevas'}})
 - Cuando el eje X tenga valores de mes (1-12), conviértelo a string antes de graficar para que aparezcan como categorías: nuevas_por_mes['primera_escucha'] = nuevas_por_mes['primera_escucha'].astype(str)
+- Para preguntas sobre "más escuchado", si el usuario habla de tiempo, usa `horas` o `minutos`; si habla de cantidad de reproducciones, usa recuento de filas.
+- Para preguntas sobre canciones saltadas, usa siempre `skipped_bool`, no `skipped`.
+- Para comparaciones entre periodos (semestre, estación, fin de semana vs entre semana), usa gráficos de barras agrupadas o barras comparativas.
+- Ordena los rankings de mayor a menor.
+- En rankings, limita a top 5 o top 10 si el usuario lo pide; si no especifica, usa top 10 como máximo.
+- Si la pregunta es ambigua pero razonable, interpreta de la forma más natural posible en lugar de devolver error.
+- Si la pregunta requiere un filtro temporal por estación o semestre, usa las columnas `estacion` y `semestre`.
+- Añade títulos y etiquetas claras en español.
 
 REGLAS PARA LA INTERPRETACIÓN:
 - Máximo 2 frases explicando qué muestra el gráfico
@@ -121,8 +133,21 @@ def load_data():
     df["artista"] = df["master_metadata_album_artist_name"]
     df["cancion"] = df["master_metadata_track_name"]
     df["album"] = df["master_metadata_album_album_name"]
-    df["primera_escucha"] = df.groupby("cancion")["mes"].transform("min")
+    df["skipped_bool"] = df["skipped"].fillna(False).astype(bool)
+    df["semestre"] = df["mes"].apply(lambda x: "primer_semestre" if x <= 6 else "segundo_semestre")
 
+    def asignar_estacion(mes):
+        if mes in [12, 1, 2]:
+            return "invierno"
+        elif mes in [3, 4, 5]:
+            return "primavera"
+        elif mes in [6, 7, 8]:
+            return "verano"
+        else:
+            return "otoño"
+    df["estacion"] = df["mes"].apply(asignar_estacion)
+    df["primera_escucha"] = df.groupby("spotify_track_uri")["mes"].transform("min")
+    df["horas"] = df["ms_played"] / 3600000
     
     return df
 
