@@ -91,11 +91,12 @@ REGLAS PARA EL CÓDIGO:
 - Usa siempre Plotly (px o go), nunca matplotlib.
 - El gráfico final debe guardarse en una variable llamada `fig`.
 - Usa únicamente las variables ya disponibles: `df`, `pd`, `px`, `go`.
-- No escribas imports de ningún tipo.
+- Está prohibido incluir cualquier línea `import` o `from ... import ...`. Si incluyes cualquier import, la respuesta será incorrecta.
 - El código debe ser ejecutable tal cual, sin comentarios y sin texto explicativo.
 - Usa exactamente los nombres de columna indicados arriba.
 - Añade siempre un título y etiquetas claras en español.
 - Ordena los rankings de mayor a menor.
+- En preguntas sobre shuffle vs orden o saltadas vs no saltadas, prioriza pie chart o barras simples según cuál comunique mejor la proporción total.
 - Usa gráficos de barras para rankings y comparaciones, líneas para evolución temporal y pie solo cuando haya muy pocas categorías y la proporción sea claramente legible.
 - Si el usuario pregunta por un único elemento ("cuál es", "qué canción", "qué artista", "qué plataforma"), devuelve solo el top 1.
 - Usa top 5 o top 10 solo cuando el usuario lo pida explícitamente o cuando la pregunta esté en plural.
@@ -107,7 +108,7 @@ REGLAS PARA EL CÓDIGO:
 - Para evolución temporal, agrupa por `mes` y no por `mes_nombre`, para mantener el orden correcto.
 - Cuando el eje X represente meses (1-12), convierte esa columna a string antes de graficar para que aparezca como categoría.
 - Cuando el eje X represente horas del día, deben aparecer siempre todas las horas de 0 a 23, aunque alguna tenga valor 0. Para ello, reindexa contra una serie o DataFrame con las 24 horas antes de graficar.
-- Para preguntas por hora, el orden del eje X debe ser de 0 a 23.
+- Para preguntas por hora, reindexa contra `range(24)` antes de graficar y mantén el orden de 0 a 23.
 - Para comparaciones entre periodos (semestre, estación, entre semana vs fin de semana), usa gráficos comparativos claros, preferiblemente barras agrupadas.
 - Si el usuario pide comparar top artistas o top canciones entre dos periodos, calcula el top de cada periodo, une los elementos relevantes en un único DataFrame comparativo y representa ambas series de forma clara.
 - Para "canciones nuevas por mes", usa `primera_escucha` para contar canciones únicas descubiertas por mes.
@@ -124,6 +125,7 @@ REGLAS PARA LA INTERPRETACIÓN:
 - Escribe la interpretación en español.
 - Máximo 2 frases.
 - No describas solo el gráfico: menciona también el hallazgo principal cuando sea evidente.
+- Si la respuesta permite identificar claramente un ganador, pico o categoría dominante, menciónalo explícitamente.
 - Si hay una categoría dominante o un periodo claramente superior, dilo de forma directa.
 """
 
@@ -140,8 +142,6 @@ def load_data():
     df = pd.read_json("streaming_history.json")
 
     df["ts"] = pd.to_datetime(df["ts"], utc=True)
-
-    # Mantener solo reproducciones con tiempo positivo
     df = df[df["ms_played"] > 0].copy()
 
     df["hora"] = df["ts"].dt.hour
@@ -156,16 +156,18 @@ def load_data():
     df["cancion"] = df["master_metadata_track_name"]
     df["album"] = df["master_metadata_album_album_name"]
 
-    # Evitar nulos problemáticos en análisis de rankings
-    df = df[df["artista"].notna() & df["cancion"].notna()].copy()
-
+    mapa_meses = {
+        1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+        5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+        9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+    }
     mapa_meses = {
         1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
         5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
         9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
     }
     df["mes_nombre"] = df["mes"].map(mapa_meses)
-
+    df = df[df["artista"].notna() & df["cancion"].notna()].copy()
     df["skipped_bool"] = df["skipped"].fillna(False).astype(bool)
     df["semestre"] = df["mes"].apply(lambda x: "primer_semestre" if x <= 6 else "segundo_semestre")
 
@@ -181,7 +183,6 @@ def load_data():
 
     df["estacion"] = df["mes"].apply(asignar_estacion)
 
-    # Mes de primera escucha por canción usando la primera fecha real
     primera_ts = df.groupby("spotify_track_uri")["ts"].transform("min")
     df["primera_escucha"] = primera_ts.dt.month
 
@@ -364,7 +365,7 @@ if prompt := st.chat_input("Ej: ¿Cuál es mi artista más escuchado?"):
 #    el LLM? ¿Qué devuelve? ¿Dónde se ejecuta el código generado?
 #    ¿Por qué el LLM no recibe los datos directamente?
 #
-#    [Tu respuesta aquí]
+#    En mi aplicación el LLM no recibe el dataset real ni las filas del historial, sino una descripción estructurada del DataFrame: columnas disponibles, rango temporal, plataformas y valores posibles de algunas variables. A partir de esa información y de la pregunta del usuario, el modelo devuelve un JSON con tres campos: `tipo`, `codigo` e `interpretacion`. El código generado se ejecuta en local con `exec()` dentro de `execute_chart()`, usando el DataFrame ya cargado en memoria. Esta arquitectura evita exponer datos reales a la API y hace que el análisis se haga sobre el fichero local, no dentro del modelo. El LLM actúa como generador de código, no como motor que “ve” directamente los datos.
 #
 #
 # 2. EL SYSTEM PROMPT COMO PIEZA CLAVE
@@ -373,11 +374,12 @@ if prompt := st.chat_input("Ej: ¿Cuál es mi artista más escuchado?"):
 #    de tu prompt, y otro de una que falla o fallaría si quitases
 #    una instrucción.
 #
-#    [Tu respuesta aquí]
+#    # El system prompt es la pieza que más condiciona la calidad de la app, porque le dice al modelo qué columnas existen, qué significan y cómo debe responder. En mi caso le indico columnas derivadas como `horas`, `skipped_bool`, `semestre`, `estacion` y `primera_escucha`, además de reglas para usar siempre JSON válido, guardar el gráfico en `fig`, no escribir imports y elegir gráficos adecuados. Por ejemplo, la pregunta “¿Qué porcentaje de canciones salto?” funciona bien gracias a que el prompt obliga a usar `skipped_bool` en lugar de `skipped`, que tiene nulos. También mejoró mucho “¿Qué canción he escuchado más veces?” cuando añadí la instrucción de devolver top 1 si la pregunta está en singular. Si quitase la instrucción de responder solo con JSON o la de no inventar columnas, la app fallaría al parsear la respuesta o al ejecutar código incorrecto.
+
 #
 #
 # 3. EL FLUJO COMPLETO
 #    Describe paso a paso qué ocurre desde que el usuario escribe
 #    una pregunta hasta que ve el gráfico en pantalla.
 #
-#    [Tu respuesta aquí]
+#    # El flujo empieza cuando el usuario escribe una pregunta en `st.chat_input`. La app carga el DataFrame ya preparado con `load_data()` y construye el prompt final con `build_prompt()`, insertando fechas, plataformas y valores reales del dataset. Después envía a la API dos mensajes: el system prompt y la pregunta del usuario. La respuesta del modelo llega como texto y `parse_response()` la convierte en un diccionario Python. Si el tipo es `fuera_de_alcance`, la app muestra solo el mensaje controlado. Si el tipo es `grafico`, `execute_chart()` ejecuta el código generado sobre `df`, recupera la figura `fig` y Streamlit la muestra junto con la interpretación y el código utilizado. Así, cada pregunta se resuelve de forma independiente, sin memoria conversacional y sin sacar los datos fuera del entorno local.
