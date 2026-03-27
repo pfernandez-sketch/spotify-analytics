@@ -1,9 +1,9 @@
 # ============================================================
 # CABECERA
 # ============================================================
-# Alumno: Nombre Apellido
-# URL Streamlit Cloud: https://...streamlit.app
-# URL GitHub: https://github.com/...
+# Alumno: Pablo Fernandez Segura
+# URL Streamlit Cloud: https://spotify-analytics-stats-pfs.streamlit.app
+# URL GitHub: https://github.com/pfernandez-sketch/spotify-analytics
 
 # ============================================================
 # IMPORTS
@@ -88,7 +88,6 @@ REGLAS PARA EL CÓDIGO:
 - El código debe ser ejecutable tal cual, sin imports (ya están disponibles: df, pd, px, go)
 - Elige el tipo de gráfico adecuado: barras para rankings, líneas para evolución temporal, pie para proporciones
 - Para evolución temporal, agrupa siempre por la columna `mes` (número) y no por `mes_nombre`, para mantener el orden correcto
-- Para calcular canciones nuevas por mes: primeras_veces = df.groupby('cancion')['ts'].min().reset_index(); primeras_veces['mes'] = primeras_veces['ts'].dt.tz_convert(None).dt.month; nuevas_por_mes = primeras_veces.groupby('mes').size().reset_index(name='nuevas_canciones')
 - Para canciones nuevas por mes usa: nuevas_por_mes = df.groupby('primera_escucha')['cancion'].nunique().reset_index(name='nuevas_canciones'); fig = px.bar(nuevas_por_mes, x='primera_escucha', y='nuevas_canciones')
 
 REGLAS PARA LA INTERPRETACIÓN:
