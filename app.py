@@ -99,6 +99,7 @@ REGLAS PARA EL CÓDIGO:
 - Para comparaciones entre periodos (semestre, estación, fin de semana vs entre semana), usa gráficos de barras agrupadas o barras comparativas.
 - Ordena los rankings de mayor a menor.
 - En rankings, limita a top 5 o top 10 si el usuario lo pide; si no especifica, usa top 10 como máximo.
+- Si el usuario pregunta por un único elemento ("cuál es", "qué canción", "qué artista"), devuelve solo el top 1. Usa top 5 o top 10 solo cuando el usuario lo pida explícitamente o cuando la pregunta esté en plural.
 - Si la pregunta es ambigua pero razonable, interpreta de la forma más natural posible en lugar de devolver error.
 - Si la pregunta requiere un filtro temporal por estación o semestre, usa las columnas `estacion` y `semestre`.
 - Añade títulos y etiquetas claras en español.
