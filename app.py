@@ -72,6 +72,7 @@ Columnas disponibles en `df`:
 - dia_semana: día de la semana (0=lunes, 6=domingo)
 - es_finde: booleano, True si es sábado o domingo
 - trimestre: trimestre del año (1-4)
+- primera_escucha: mes (1-12) en que se escuchó por primera vez cada canción
 
 INSTRUCCIONES:
 1. Responde SIEMPRE con un JSON válido y nada más. Sin texto antes ni después.
@@ -88,7 +89,7 @@ REGLAS PARA EL CÓDIGO:
 - Elige el tipo de gráfico adecuado: barras para rankings, líneas para evolución temporal, pie para proporciones
 - Para evolución temporal, agrupa siempre por la columna `mes` (número) y no por `mes_nombre`, para mantener el orden correcto
 - Para calcular canciones nuevas por mes: primeras_veces = df.groupby('cancion')['ts'].min().reset_index(); primeras_veces['mes'] = primeras_veces['ts'].dt.tz_convert(None).dt.month; nuevas_por_mes = primeras_veces.groupby('mes').size().reset_index(name='nuevas_canciones')
-
+- Para canciones nuevas por mes usa: nuevas_por_mes = df.groupby('primera_escucha')['cancion'].nunique().reset_index(name='nuevas_canciones'); fig = px.bar(nuevas_por_mes, x='primera_escucha', y='nuevas_canciones')
 
 REGLAS PARA LA INTERPRETACIÓN:
 - Máximo 2 frases explicando qué muestra el gráfico
@@ -120,6 +121,8 @@ def load_data():
     df["artista"] = df["master_metadata_album_artist_name"]
     df["cancion"] = df["master_metadata_track_name"]
     df["album"] = df["master_metadata_album_album_name"]
+    df["primera_escucha"] = df.groupby("cancion")["mes"].transform("min")
+
     
     return df
 
