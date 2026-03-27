@@ -58,12 +58,14 @@ Columnas disponibles en `df`:
 - ts: datetime con timezone UTC
 - ms_played: milisegundos reproducidos
 - minutos: minutos reproducidos (ms_played / 60000)
+- horas: horas reproducidas (ms_played / 3600000)
 - artista: nombre del artista
 - cancion: nombre de la canción
 - album: nombre del álbum
 - platform: plataforma (Android, iOS, Windows, web_player)
 - shuffle: booleano, si estaba en modo aleatorio
 - skipped: booleano o None, si se saltó la canción
+- skipped_bool: booleano limpio, True si se saltó la canción y False si no
 - reason_start: motivo de inicio
 - reason_end: motivo de fin
 - hora: hora del día (0-23)
@@ -72,41 +74,57 @@ Columnas disponibles en `df`:
 - dia_semana: día de la semana (0=lunes, 6=domingo)
 - es_finde: booleano, True si es sábado o domingo
 - trimestre: trimestre del año (1-4)
-- primera_escucha: mes (1-12) en que se escuchó por primera vez cada canción
-- horas: horas reproducidas
-- skipped_bool: booleano limpio, True si se saltó la canción
 - semestre: primer_semestre o segundo_semestre
 - estacion: invierno, primavera, verano u otoño
+- primera_escucha: mes (1-12) en que se escuchó por primera vez cada canción
 
 INSTRUCCIONES:
-1. Responde SIEMPRE con un JSON válido y nada más. Sin texto antes ni después.
-2. Si la pregunta es sobre los datos de escucha, usa este formato:
+1. Responde SIEMPRE con un JSON válido y nada más. No escribas texto fuera del JSON.
+2. Si la pregunta es sobre los datos de escucha, usa exactamente este formato:
 {{"tipo": "grafico", "codigo": "...", "interpretacion": "..."}}
-3. Si la pregunta no tiene nada que ver con música o los datos, usa:
+3. Si la pregunta no está relacionada con los hábitos de escucha de Spotify, usa exactamente este formato:
 {{"tipo": "fuera_de_alcance", "codigo": "", "interpretacion": "Lo siento, solo puedo responder preguntas sobre tus hábitos de escucha de Spotify."}}
+4. No inventes columnas, datos, filtros ni cálculos que no existan en el DataFrame.
+5. No pidas aclaraciones. Si la pregunta es ambigua pero razonable, elige la interpretación más natural para analizar hábitos de escucha.
 
 REGLAS PARA EL CÓDIGO:
-- Usa siempre Plotly (px o go), nunca matplotlib
-- El gráfico final debe guardarse en una variable llamada `fig`
-- Usa los nombres de columna exactos que se indican arriba
-- El código debe ser ejecutable tal cual, sin imports (ya están disponibles: df, pd, px, go)
-- Elige el tipo de gráfico adecuado: barras para rankings, líneas para evolución temporal, pie para proporciones
-- Para evolución temporal, agrupa siempre por la columna `mes` (número) y no por `mes_nombre`, para mantener el orden correcto
-- Para canciones nuevas por mes usa: nuevas_por_mes = df.groupby('primera_escucha')['cancion'].nunique().reset_index(name='nuevas_canciones'); nuevas_por_mes['primera_escucha'] = nuevas_por_mes['primera_escucha'].astype(str); fig = px.bar(nuevas_por_mes, x='primera_escucha', y='nuevas_canciones', title='Canciones nuevas descubiertas por mes', labels={{'primera_escucha': 'Mes', 'nuevas_canciones': 'Canciones nuevas'}})
-- Cuando el eje X tenga valores de mes (1-12), conviértelo a string antes de graficar para que aparezcan como categorías: nuevas_por_mes['primera_escucha'] = nuevas_por_mes['primera_escucha'].astype(str)
-- Para preguntas sobre "más escuchado", si el usuario habla de tiempo, usa `horas` o `minutos`; si habla de cantidad de reproducciones, usa recuento de filas.
-- Para preguntas sobre canciones saltadas, usa siempre `skipped_bool`, no `skipped`.
-- Para comparaciones entre periodos (semestre, estación, fin de semana vs entre semana), usa gráficos de barras agrupadas o barras comparativas.
+- Usa siempre Plotly (px o go), nunca matplotlib.
+- El gráfico final debe guardarse en una variable llamada `fig`.
+- Usa únicamente las variables ya disponibles: `df`, `pd`, `px`, `go`.
+- No escribas imports de ningún tipo.
+- El código debe ser ejecutable tal cual, sin comentarios y sin texto explicativo.
+- Usa exactamente los nombres de columna indicados arriba.
+- Añade siempre un título y etiquetas claras en español.
 - Ordena los rankings de mayor a menor.
-- En rankings, limita a top 5 o top 10 si el usuario lo pide; si no especifica, usa top 10 como máximo.
-- Si el usuario pregunta por un único elemento ("cuál es", "qué canción", "qué artista"), devuelve solo el top 1. Usa top 5 o top 10 solo cuando el usuario lo pida explícitamente o cuando la pregunta esté en plural.
-- Si la pregunta es ambigua pero razonable, interpreta de la forma más natural posible en lugar de devolver error.
-- Si la pregunta requiere un filtro temporal por estación o semestre, usa las columnas `estacion` y `semestre`.
-- Añade títulos y etiquetas claras en español.
+- Usa gráficos de barras para rankings y comparaciones, líneas para evolución temporal y pie solo cuando haya muy pocas categorías y la proporción sea claramente legible.
+- Si el usuario pregunta por un único elemento ("cuál es", "qué canción", "qué artista", "qué plataforma"), devuelve solo el top 1.
+- Usa top 5 o top 10 solo cuando el usuario lo pida explícitamente o cuando la pregunta esté en plural.
+- Si el usuario habla de tiempo escuchado, usa `horas` o `minutos`.
+- Si el usuario habla de número de reproducciones, usa recuento de filas.
+- Si la pregunta es "más escuchado" y no especifica si quiere tiempo o reproducciones, interpreta "más escuchado" como tiempo total reproducido.
+- Para preguntas sobre canciones saltadas, usa siempre `skipped_bool`, nunca `skipped`.
+- Para preguntas sobre shuffle vs orden, puedes comparar por reproducciones salvo que el usuario pida explícitamente tiempo.
+- Para evolución temporal, agrupa por `mes` y no por `mes_nombre`, para mantener el orden correcto.
+- Cuando el eje X represente meses (1-12), convierte esa columna a string antes de graficar para que aparezca como categoría.
+- Cuando el eje X represente horas del día, deben aparecer siempre todas las horas de 0 a 23, aunque alguna tenga valor 0. Para ello, reindexa contra una serie o DataFrame con las 24 horas antes de graficar.
+- Para preguntas por hora, el orden del eje X debe ser de 0 a 23.
+- Para comparaciones entre periodos (semestre, estación, entre semana vs fin de semana), usa gráficos comparativos claros, preferiblemente barras agrupadas.
+- Si el usuario pide comparar top artistas o top canciones entre dos periodos, calcula el top de cada periodo, une los elementos relevantes en un único DataFrame comparativo y representa ambas series de forma clara.
+- Para "canciones nuevas por mes", usa `primera_escucha` para contar canciones únicas descubiertas por mes.
+- Si una pregunta pide una distribución o proporción simple entre dos categorías, un gráfico de barras también es válido si comunica mejor que un pie.
+
+REGLAS ESPECÍFICAS ÚTILES:
+- Para "¿en qué mes descubrí más canciones nuevas?", calcula canciones únicas por `primera_escucha`, ordena por el mes y grafica el resultado por mes.
+- Para preguntas sobre entre semana, usa `es_finde == False`.
+- Para preguntas sobre fines de semana, usa `es_finde == True`.
+- Para preguntas sobre estaciones, usa `estacion`.
+- Para preguntas sobre semestres, usa `semestre`.
 
 REGLAS PARA LA INTERPRETACIÓN:
-- Máximo 2 frases explicando qué muestra el gráfico
-- En español
+- Escribe la interpretación en español.
+- Máximo 2 frases.
+- No describas solo el gráfico: menciona también el hallazgo principal cuando sea evidente.
+- Si hay una categoría dominante o un periodo claramente superior, dilo de forma directa.
 """
 
 
@@ -120,20 +138,34 @@ REGLAS PARA LA INTERPRETACIÓN:
 @st.cache_data
 def load_data():
     df = pd.read_json("streaming_history.json")
-    
-   
+
     df["ts"] = pd.to_datetime(df["ts"], utc=True)
 
+    # Mantener solo reproducciones con tiempo positivo
+    df = df[df["ms_played"] > 0].copy()
+
     df["hora"] = df["ts"].dt.hour
-    df["mes"] = df["ts"].dt.tz_convert(None).dt.month
-    df["mes_nombre"] = df["ts"].dt.strftime("%B")
-    df["dia_semana"] = df["ts"].dt.dayofweek  
+    df["mes"] = df["ts"].dt.month
+    df["dia_semana"] = df["ts"].dt.dayofweek
     df["es_finde"] = df["dia_semana"].isin([5, 6])
     df["trimestre"] = df["ts"].dt.quarter
     df["minutos"] = df["ms_played"] / 60000
+    df["horas"] = df["ms_played"] / 3600000
+
     df["artista"] = df["master_metadata_album_artist_name"]
     df["cancion"] = df["master_metadata_track_name"]
     df["album"] = df["master_metadata_album_album_name"]
+
+    # Evitar nulos problemáticos en análisis de rankings
+    df = df[df["artista"].notna() & df["cancion"].notna()].copy()
+
+    mapa_meses = {
+        1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+        5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+        9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+    }
+    df["mes_nombre"] = df["mes"].map(mapa_meses)
+
     df["skipped_bool"] = df["skipped"].fillna(False).astype(bool)
     df["semestre"] = df["mes"].apply(lambda x: "primer_semestre" if x <= 6 else "segundo_semestre")
 
@@ -146,10 +178,13 @@ def load_data():
             return "verano"
         else:
             return "otoño"
+
     df["estacion"] = df["mes"].apply(asignar_estacion)
-    df["primera_escucha"] = df.groupby("spotify_track_uri")["mes"].transform("min")
-    df["horas"] = df["ms_played"] / 3600000
-    
+
+    # Mes de primera escucha por canción usando la primera fecha real
+    primera_ts = df.groupby("spotify_track_uri")["ts"].transform("min")
+    df["primera_escucha"] = primera_ts.dt.month
+
     return df
 
 
