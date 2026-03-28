@@ -108,7 +108,7 @@ REGLAS PARA EL CÓDIGO:
 - Cuando el eje X represente meses (1-12), convierte esa columna a string antes de graficar para que aparezca como categoría.
 - Para gráficos por hora del día, asegúrate siempre de que aparezcan las 24 horas (0-23). Crea un DataFrame base con todas las horas usando range(24), haz un merge con los datos reales y rellena con 0 las horas sin datos. Así ninguna hora queda fuera del gráfico.
 - Para comparaciones entre periodos (semestre, estación, entre semana vs fin de semana), usa gráficos comparativos claros, preferiblemente barras agrupadas.
-- Si el usuario pide comparar top artistas o top canciones entre dos periodos, calcula el top de cada periodo, une los elementos relevantes en un único DataFrame comparativo y representa ambas series de forma clara.
+- Si el usuario pide comparar top artistas o top canciones entre dos periodos, calcula primero el top combinado de artistas (uniendo ambos periodos), luego obtén las horas de cada artista en cada periodo aunque sean 0, y representa todos los artistas con sus valores reales en ambos periodos.
 - Para gráficos por trimestre, agrupa por `trimestre` directamente sin reindexar y convierte a string antes de graficar: df_trim = df.groupby('trimestre')['horas'].sum().reset_index(); df_trim['trimestre'] = df_trim['trimestre'].astype(str)
 - Para gráficos de evolución por mes, usa `mes_nombre` en el eje X en lugar de `mes`, pero ordena el DataFrame por `mes` antes de graficar para mantener el orden correcto: df_mes = df.groupby(['mes','mes_nombre'])['minutos'].sum().reset_index().sort_values('mes')
 - Para preguntas sobre shuffle vs orden y sobre comparaciones entre dos periodos como semestres, usa siempre pie chart.
