@@ -114,6 +114,8 @@ REGLAS PARA EL CÓDIGO:
 - Para "canciones nuevas por mes", usa `primera_escucha` para contar canciones únicas descubiertas por mes.
 - Si una pregunta pide una distribución o proporción simple entre dos categorías, un gráfico de barras también es válido si comunica mejor que un pie.
 - Para gráficos por trimestre, agrupa por `trimestre` directamente sin reindexar y convierte a string antes de graficar: df_trim = df.groupby('trimestre')['horas'].sum().reset_index(); df_trim['trimestre'] = df_trim['trimestre'].astype(str)
+- Para gráficos de evolución por mes, usa `mes_nombre` en el eje X en lugar de `mes`, pero ordena el DataFrame por `mes` antes de graficar para mantener el orden correcto: df_mes = df.groupby(['mes','mes_nombre'])['minutos'].sum().reset_index().sort_values('mes')
+- Para preguntas sobre shuffle vs orden y sobre comparaciones entre dos periodos como semestres, usa siempre pie chart.
 
 REGLAS ESPECÍFICAS ÚTILES:
 - Para "¿en qué mes descubrí más canciones nuevas?", calcula canciones únicas por `primera_escucha`, ordena por el mes y grafica el resultado por mes.
