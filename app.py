@@ -96,8 +96,7 @@ REGLAS PARA EL CÓDIGO:
 - Usa exactamente los nombres de columna indicados arriba.
 - Añade siempre un título y etiquetas claras en español.
 - Ordena los rankings de mayor a menor.
-- En preguntas sobre shuffle vs orden o saltadas vs no saltadas, prioriza pie chart o barras simples según cuál comunique mejor la proporción total.
-- Usa gráficos de barras para rankings y comparaciones, líneas para evolución temporal y pie solo cuando haya muy pocas categorías y la proporción sea claramente legible.
+- Usa gráficos de barras para rankings y comparaciones, líneas para evolución temporal. Usa pie chart cuando haya 2 o 3 categorías y la pregunta sea sobre proporción o distribución (shuffle vs orden, semestres, saltadas vs no saltadas).
 - Si el usuario pregunta por un único elemento ("cuál es", "qué canción", "qué artista", "qué plataforma"), devuelve solo el top 1.
 - Usa top 5 o top 10 solo cuando el usuario lo pida explícitamente o cuando la pregunta esté en plural.
 - Si el usuario habla de tiempo escuchado, usa `horas` o `minutos`.
@@ -107,12 +106,10 @@ REGLAS PARA EL CÓDIGO:
 - Para preguntas sobre shuffle vs orden, puedes comparar por reproducciones salvo que el usuario pida explícitamente tiempo.
 - Para evolución temporal, agrupa por `mes` y no por `mes_nombre`, para mantener el orden correcto.
 - Cuando el eje X represente meses (1-12), convierte esa columna a string antes de graficar para que aparezca como categoría.
-- Cuando el eje X represente horas del día, deben aparecer siempre todas las horas de 0 a 23, aunque alguna tenga valor 0. Para ello, reindexa contra una serie o DataFrame con las 24 horas antes de graficar.
-- Para preguntas por hora, reindexa contra `range(24)` antes de graficar y mantén el orden de 0 a 23.
+- Para gráficos por hora del día, asegúrate siempre de que aparezcan las 24 horas (0-23). Crea un DataFrame base con todas las horas usando range(24), haz un merge con los datos reales y rellena con 0 las horas sin datos. Así ninguna hora queda fuera del gráfico.
 - Para comparaciones entre periodos (semestre, estación, entre semana vs fin de semana), usa gráficos comparativos claros, preferiblemente barras agrupadas.
 - Si el usuario pide comparar top artistas o top canciones entre dos periodos, calcula el top de cada periodo, une los elementos relevantes en un único DataFrame comparativo y representa ambas series de forma clara.
-- Para "canciones nuevas por mes", usa `primera_escucha` para contar canciones únicas descubiertas por mes.
-- Si una pregunta pide una distribución o proporción simple entre dos categorías, un gráfico de barras también es válido si comunica mejor que un pie.
+- Para canciones nuevas por mes, agrupa por `primera_escucha`, cuenta canciones únicas y convierte el mes a string entero antes de graficar para que aparezcan como categorías limpias (ej: "1", "2") sin decimales ni valores intermedios.
 - Para gráficos por trimestre, agrupa por `trimestre` directamente sin reindexar y convierte a string antes de graficar: df_trim = df.groupby('trimestre')['horas'].sum().reset_index(); df_trim['trimestre'] = df_trim['trimestre'].astype(str)
 - Para gráficos de evolución por mes, usa `mes_nombre` en el eje X en lugar de `mes`, pero ordena el DataFrame por `mes` antes de graficar para mantener el orden correcto: df_mes = df.groupby(['mes','mes_nombre'])['minutos'].sum().reset_index().sort_values('mes')
 - Para preguntas sobre shuffle vs orden y sobre comparaciones entre dos periodos como semestres, usa siempre pie chart.
