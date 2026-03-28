@@ -104,9 +104,10 @@ REGLAS PARA EL CÓDIGO:
 - Si la pregunta es "más escuchado" y no especifica si quiere tiempo o reproducciones, interpreta "más escuchado" como tiempo total reproducido.
 - Para preguntas sobre canciones saltadas, usa siempre `skipped_bool`, nunca `skipped`.
 - Para preguntas sobre shuffle vs orden, puedes comparar por reproducciones salvo que el usuario pida explícitamente tiempo.
+- Para shuffle vs orden, mapea los valores True/False a etiquetas legibles: True → 'Shuffle', False → 'Orden' antes de graficar.
 - Para evolución temporal, agrupa por `mes` y no por `mes_nombre`, para mantener el orden correcto.
 - Cuando el eje X represente meses (1-12), convierte esa columna a string antes de graficar para que aparezca como categoría.
-- Para gráficos por hora del día, asegúrate siempre de que aparezcan las 24 horas (0-23). Crea un DataFrame base con todas las horas usando range(24), haz un merge con los datos reales y rellena con 0 las horas sin datos. Así ninguna hora queda fuera del gráfico.
+- Para gráficos por hora del día, crea siempre un DataFrame con las 24 horas completas (0-23), haz un merge con los datos reales usando how='left' y rellena con 0 las horas sin datos. Filtra por es_finde antes de agrupar si la pregunta es sobre entre semana o fines de semana. Usa siempre barras horizontales con la hora en el eje X.
 - Para comparaciones entre periodos (semestre, estación, entre semana vs fin de semana), usa gráficos comparativos claros, preferiblemente barras agrupadas.
 - Si el usuario pide comparar top artistas o top canciones entre dos periodos, calcula primero el top combinado de artistas (uniendo ambos periodos), luego obtén las horas de cada artista en cada periodo aunque sean 0, y representa todos los artistas con sus valores reales en ambos periodos.
 - Para gráficos por trimestre, agrupa por `trimestre` directamente sin reindexar y convierte a string antes de graficar: df_trim = df.groupby('trimestre')['horas'].sum().reset_index(); df_trim['trimestre'] = df_trim['trimestre'].astype(str)
