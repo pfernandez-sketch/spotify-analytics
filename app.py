@@ -364,16 +364,14 @@ if prompt := st.chat_input("Ej: ¿Cuál es mi artista más escuchado?"):
 #    En mi aplicación el LLM no recibe el dataset real ni las filas del historial, sino una descripción estructurada del DataFrame: columnas disponibles, 
 #    rango temporal, plataformas y valores posibles de algunas variables. A partir de esa información y de la pregunta del usuario, el modelo devuelve un JSON 
 #    con tres campos: `tipo`, `codigo` e `interpretacion`. El código generado se ejecuta en local con `exec()` dentro de `execute_chart()`, usando el DataFrame ya cargado en memoria. 
-#    Esta arquitectura evita exponer datos reales a la API y hace que el análisis se haga sobre el fichero local, no dentro del modelo. El LLM actúa como generador de código, no como 
-#    motor que “ve” directamente los datos.
-#
+#    Esta arquitectura evita exponer datos reales a la API y hace que el análisis se haga sobre el fichero local, no dentro del modelo. El LLM actúa como generador de código, no como motor que “ve” directamente los datos.
 
 # 2. EL SYSTEM PROMPT COMO PIEZA CLAVE
 #    ¿Qué información le das al LLM y por qué? Pon un ejemplo
 #    concreto de una pregunta que funciona gracias a algo específico
 #    de tu prompt, y otro de una que falla o fallaría si quitases
 #    una instrucción.
-
+#
 #    El system prompt es la pieza que más condiciona la calidad de la app, porque le dice al modelo qué columnas existen, qué significan y cómo debe responder. En mi caso le indico columnas 
 #    derivadas como `horas`, `skipped_bool`, `semestre`, `estacion` y `primera_escucha`, además de reglas para usar siempre JSON válido, guardar el gráfico en `fig`, no escribir imports y 
 #    elegir gráficos adecuados. Por ejemplo, la pregunta “¿Qué porcentaje de canciones salto?” funciona bien gracias a que el prompt obliga a usar `skipped_bool` en lugar de `skipped`, que 
