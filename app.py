@@ -113,6 +113,7 @@ REGLAS PARA EL CÓDIGO:
 - Si el usuario pide comparar top artistas o top canciones entre dos periodos, calcula el top de cada periodo, une los elementos relevantes en un único DataFrame comparativo y representa ambas series de forma clara.
 - Para "canciones nuevas por mes", usa `primera_escucha` para contar canciones únicas descubiertas por mes.
 - Si una pregunta pide una distribución o proporción simple entre dos categorías, un gráfico de barras también es válido si comunica mejor que un pie.
+- Para gráficos por trimestre, agrupa por `trimestre` directamente sin reindexar y convierte a string antes de graficar: df_trim = df.groupby('trimestre')['horas'].sum().reset_index(); df_trim['trimestre'] = df_trim['trimestre'].astype(str)
 
 REGLAS ESPECÍFICAS ÚTILES:
 - Para "¿en qué mes descubrí más canciones nuevas?", calcula canciones únicas por `primera_escucha`, ordena por el mes y grafica el resultado por mes.
