@@ -109,11 +109,11 @@ REGLAS PARA EL CÓDIGO:
 - Para gráficos por hora del día, asegúrate siempre de que aparezcan las 24 horas (0-23). Crea un DataFrame base con todas las horas usando range(24), haz un merge con los datos reales y rellena con 0 las horas sin datos. Así ninguna hora queda fuera del gráfico.
 - Para comparaciones entre periodos (semestre, estación, entre semana vs fin de semana), usa gráficos comparativos claros, preferiblemente barras agrupadas.
 - Si el usuario pide comparar top artistas o top canciones entre dos periodos, calcula el top de cada periodo, une los elementos relevantes en un único DataFrame comparativo y representa ambas series de forma clara.
-- Para canciones nuevas por mes, agrupa por `primera_escucha`, cuenta canciones únicas y convierte el mes a string entero antes de graficar para que aparezcan como categorías limpias (ej: "1", "2") sin decimales ni valores intermedios.
 - Para gráficos por trimestre, agrupa por `trimestre` directamente sin reindexar y convierte a string antes de graficar: df_trim = df.groupby('trimestre')['horas'].sum().reset_index(); df_trim['trimestre'] = df_trim['trimestre'].astype(str)
 - Para gráficos de evolución por mes, usa `mes_nombre` en el eje X en lugar de `mes`, pero ordena el DataFrame por `mes` antes de graficar para mantener el orden correcto: df_mes = df.groupby(['mes','mes_nombre'])['minutos'].sum().reset_index().sort_values('mes')
 - Para preguntas sobre shuffle vs orden y sobre comparaciones entre dos periodos como semestres, usa siempre pie chart.
 - Para preguntas sobre horas del día, usa siempre gráfico de barras (px.bar), nunca líneas.
+- Para canciones nuevas por mes, crea un DataFrame con los 12 meses usando el mapa de mes_nombre, haz merge con los datos reales, rellena con 0 los meses sin datos y muestra todos los meses de Enero a Diciembre en orden.
 
 REGLAS ESPECÍFICAS ÚTILES:
 - Para "¿en qué mes descubrí más canciones nuevas?", calcula canciones únicas por `primera_escucha`, ordena por el mes y grafica el resultado por mes.
