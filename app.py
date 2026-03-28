@@ -161,11 +161,6 @@ def load_data():
         5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
         9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
     }
-    mapa_meses = {
-        1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
-        5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
-        9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
-    }
     df["mes_nombre"] = df["mes"].map(mapa_meses)
     df = df[df["artista"].notna() & df["cancion"].notna()].copy()
     df["skipped_bool"] = df["skipped"].fillna(False).astype(bool)
@@ -365,21 +360,31 @@ if prompt := st.chat_input("Ej: ¿Cuál es mi artista más escuchado?"):
 #    el LLM? ¿Qué devuelve? ¿Dónde se ejecuta el código generado?
 #    ¿Por qué el LLM no recibe los datos directamente?
 #
-#    En mi aplicación el LLM no recibe el dataset real ni las filas del historial, sino una descripción estructurada del DataFrame: columnas disponibles, rango temporal, plataformas y valores posibles de algunas variables. A partir de esa información y de la pregunta del usuario, el modelo devuelve un JSON con tres campos: `tipo`, `codigo` e `interpretacion`. El código generado se ejecuta en local con `exec()` dentro de `execute_chart()`, usando el DataFrame ya cargado en memoria. Esta arquitectura evita exponer datos reales a la API y hace que el análisis se haga sobre el fichero local, no dentro del modelo. El LLM actúa como generador de código, no como motor que “ve” directamente los datos.
+#    En mi aplicación el LLM no recibe el dataset real ni las filas del historial, sino una descripción estructurada del DataFrame: columnas disponibles, 
+#    rango temporal, plataformas y valores posibles de algunas variables. A partir de esa información y de la pregunta del usuario, el modelo devuelve un JSON 
+#    con tres campos: `tipo`, `codigo` e `interpretacion`. El código generado se ejecuta en local con `exec()` dentro de `execute_chart()`, usando el DataFrame ya cargado en memoria. 
+#    Esta arquitectura evita exponer datos reales a la API y hace que el análisis se haga sobre el fichero local, no dentro del modelo. El LLM actúa como generador de código, no como 
+#    motor que “ve” directamente los datos.
 #
-#
+
 # 2. EL SYSTEM PROMPT COMO PIEZA CLAVE
 #    ¿Qué información le das al LLM y por qué? Pon un ejemplo
 #    concreto de una pregunta que funciona gracias a algo específico
 #    de tu prompt, y otro de una que falla o fallaría si quitases
 #    una instrucción.
-#
-#    # El system prompt es la pieza que más condiciona la calidad de la app, porque le dice al modelo qué columnas existen, qué significan y cómo debe responder. En mi caso le indico columnas derivadas como `horas`, `skipped_bool`, `semestre`, `estacion` y `primera_escucha`, además de reglas para usar siempre JSON válido, guardar el gráfico en `fig`, no escribir imports y elegir gráficos adecuados. Por ejemplo, la pregunta “¿Qué porcentaje de canciones salto?” funciona bien gracias a que el prompt obliga a usar `skipped_bool` en lugar de `skipped`, que tiene nulos. También mejoró mucho “¿Qué canción he escuchado más veces?” cuando añadí la instrucción de devolver top 1 si la pregunta está en singular. Si quitase la instrucción de responder solo con JSON o la de no inventar columnas, la app fallaría al parsear la respuesta o al ejecutar código incorrecto.
 
-#
-#
+#    El system prompt es la pieza que más condiciona la calidad de la app, porque le dice al modelo qué columnas existen, qué significan y cómo debe responder. En mi caso le indico columnas 
+#    derivadas como `horas`, `skipped_bool`, `semestre`, `estacion` y `primera_escucha`, además de reglas para usar siempre JSON válido, guardar el gráfico en `fig`, no escribir imports y 
+#    elegir gráficos adecuados. Por ejemplo, la pregunta “¿Qué porcentaje de canciones salto?” funciona bien gracias a que el prompt obliga a usar `skipped_bool` en lugar de `skipped`, que 
+#    tiene nulos. También mejoró mucho “¿Qué canción he escuchado más veces?” cuando añadí la instrucción de devolver top 1 si la pregunta está en singular. Si quitase la instrucción de responder 
+#    solo con JSON o la de no inventar columnas, la app fallaría al parsear la respuesta o al ejecutar código incorrecto.
+
 # 3. EL FLUJO COMPLETO
 #    Describe paso a paso qué ocurre desde que el usuario escribe
 #    una pregunta hasta que ve el gráfico en pantalla.
 #
-#    # El flujo empieza cuando el usuario escribe una pregunta en `st.chat_input`. La app carga el DataFrame ya preparado con `load_data()` y construye el prompt final con `build_prompt()`, insertando fechas, plataformas y valores reales del dataset. Después envía a la API dos mensajes: el system prompt y la pregunta del usuario. La respuesta del modelo llega como texto y `parse_response()` la convierte en un diccionario Python. Si el tipo es `fuera_de_alcance`, la app muestra solo el mensaje controlado. Si el tipo es `grafico`, `execute_chart()` ejecuta el código generado sobre `df`, recupera la figura `fig` y Streamlit la muestra junto con la interpretación y el código utilizado. Así, cada pregunta se resuelve de forma independiente, sin memoria conversacional y sin sacar los datos fuera del entorno local.
+#    El flujo empieza cuando el usuario escribe una pregunta en `st.chat_input`. La app carga el DataFrame ya preparado con `load_data()` y construye el prompt final con `build_prompt()`, 
+#    insertando fechas, plataformas y valores reales del dataset. Después envía a la API dos mensajes: el system prompt y la pregunta del usuario. La respuesta del modelo llega como texto y 
+#    `parse_response()` la convierte en un diccionario Python. Si el tipo es `fuera_de_alcance`, la app muestra solo el mensaje controlado. Si el tipo es `grafico`, `execute_chart()` ejecuta el
+#     código generado sobre `df`, recupera la figura `fig` y Streamlit la muestra junto con la interpretación y el código utilizado. Así, cada pregunta se resuelve de forma independiente, sin memoria conversacional
+#     y sin sacar los datos fuera del entorno local.
