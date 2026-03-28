@@ -91,7 +91,7 @@ REGLAS PARA EL CÓDIGO:
 - Usa siempre Plotly (px o go), nunca matplotlib.
 - El gráfico final debe guardarse en una variable llamada `fig`.
 - Usa únicamente las variables ya disponibles: `df`, `pd`, `px`, `go`.
-- Está prohibido incluir cualquier línea `import` o `from ... import ...`. Si incluyes cualquier import, la respuesta será incorrecta.
+- NUNCA escribas líneas import ni from ... import. Las variables df, pd, px y go ya están disponibles directamente sin importar nada. Si escribes cualquier import el código fallará con error.
 - El código debe ser ejecutable tal cual, sin comentarios y sin texto explicativo.
 - Usa exactamente los nombres de columna indicados arriba.
 - Añade siempre un título y etiquetas claras en español.
